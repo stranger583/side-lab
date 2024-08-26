@@ -1,4 +1,5 @@
 "use server";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 const schemaRegister = z.object({
@@ -9,6 +10,15 @@ const schemaRegister = z.object({
     message: "Password must be between 6 and 100 characters",
   }),
   email: z.string().email({
+    message: "Please enter a valid email address",
+  }),
+});
+
+const schemaSignIn = z.object({
+  password: z.string().min(6).max(100, {
+    message: "Password must be between 6 and 100 characters",
+  }),
+  identifier: z.string().email({
     message: "Please enter a valid email address",
   }),
 });
@@ -35,4 +45,38 @@ export async function registerUserAction(prevState: any, formData: FormData) {
     ...prevState,
     data: "ok",
   };
+}
+
+export async function signInAction(prevState: any, formData: FormData) {
+  const passwordValue = formData.get("password");
+  const identifierValue = formData.get("identifier");
+
+  const validatedFields = schemaSignIn.safeParse({
+    password: passwordValue,
+    identifier: identifierValue,
+  });
+
+  if (!validatedFields.success) {
+    return {
+      ...prevState,
+      zodErrors: validatedFields.error.flatten().fieldErrors,
+      strapiErrors: null,
+      message: "Missing Fields. Failed to Register.",
+    };
+  }
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ passwordValue, identifierValue }),
+  });
+
+  if (res.ok) {
+    console.log("😀😀");
+    redirect("/protected");
+  } else {
+    alert("Invalid credentials");
+  }
 }

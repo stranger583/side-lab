@@ -13,11 +13,20 @@ import {
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { signInAction } from "@/actions/auth-actions";
+import { useFormState } from "react-dom";
+import { ZodErrors } from "./zod-errors";
+
+const INITIAL_STATE = {
+  data: null,
+};
 
 export function SigninForm() {
+  const [formState, formAction] = useFormState(signInAction, INITIAL_STATE);
+  console.log(formState)
   return (
     <div className="w-full max-w-md">
-      <form>
+      <form action={formAction}>
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-3xl font-bold">Sign In</CardTitle>
@@ -32,8 +41,9 @@ export function SigninForm() {
                 id="identifier"
                 name="identifier"
                 type="text"
-                placeholder="username or email"
+                placeholder="email"
               />
+              <ZodErrors error={formState?.zodErrors?.identifier} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -43,18 +53,19 @@ export function SigninForm() {
                 type="password"
                 placeholder="password"
               />
+              <ZodErrors error={formState?.zodErrors?.password} />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col">
             <button className="w-full">Sign In</button>
           </CardFooter>
         </Card>
-        <div className="mt-4 text-center text-sm">
+        {/* <div className="mt-4 text-center text-sm">
           {`Don't have an account?`}
           <Link className="underline ml-2" href="signup">
             Sign Up
           </Link>
-        </div>
+        </div> */}
       </form>
     </div>
   );
